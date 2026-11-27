@@ -103,6 +103,50 @@ build it with `VITE_ATLI_API=direct`, and the browser calls the API itself.
 Pull requests and pushes run [`.github/workflows/ci.yml`](.github/workflows/ci.yml): formatting, lint, types, tests
 and a build.
 
+### The API calls, step by step
+
+Every call below is in [`src/api/atli.ts`](src/api/atli.ts), [`src/api/account.ts`](src/api/account.ts) or
+[`src/api/site.ts`](src/api/site.ts). Paths are Atli's API's; the browser sends them as `/api/<environment>/…`, through
+the proxy, except heyatli.com's destination list, which any page may read directly. Calls that act for a guest carry
+`Authorization: Bearer <token>`, and calls that return names send `X-Locale`, so the names come back in the visitor's
+language.
+
+**Before anyone picks anything** (no account needed)
+
+| Call                                   | Why                                                                                                                        |
+| -------------------------------------- | -------------------------------------------------------------------------------------------------------------------------- |
+| `GET /explore/plans?currency=…`        | The whole catalogue: every plan, the countries it covers, its packages and prices. It colours the map and fills the panel. |
+| `GET /currencies`                      | The currencies prices can be shown and paid in, for the currency picker.                                                   |
+| `GET heyatli.com/api/destinations/all` | heyatli.com's list of countries, regions, states and cities, so search finds "Tokyo" and opens Japan's plans.              |
+
+**Paying** (when the visitor presses Pay)
+
+| Call                                                       | Why                                                                                                                                                    |
+| ---------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `POST /login` `{ device_id }`                              | Signs in the guest held by this browser's device id, creating it the first time. Returns a 15-minute token; the store signs in again when it runs out. |
+| `POST /user/referral/redeem` `{ code }`                    | Once per guest, before its first quote: links it to the environment's partner code, so the partner earns and its discount applies.                     |
+| `POST /plan/quote` `{ product_id, currency, store: true }` | The final price, with any discount, and a `quote_id` that fixes it for 30 minutes.                                                                     |
+| `GET /stripe/config`                                       | Atli's Stripe publishable key for the environment, to load Stripe's card form.                                                                         |
+| `POST /plan/purchase` `{ quote_id, idempotency_key }`      | Creates the order from the quote and returns the `client_secret` Stripe's form pays. The same key never buys twice.                                    |
+| _Stripe:_ `confirmPayment`                                 | Stripe.js takes the card on Atli's Stripe account; the card never reaches the store or the API. A 3-D Secure redirect comes back to `?order=…`.        |
+
+**After paying**
+
+| Call                                         | Why                                                                                                                            |
+| -------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------ |
+| `POST /plan/fulfill-payment` `{ order_id }`  | Tells Atli the payment went through, so it issues the eSIM now. Safe to repeat; if it fails, Atli still finishes a paid order. |
+| `GET /fulfillment/status-updates?order_id=…` | Polled every two seconds until the order is `completed` and has the eSIM's install details: the QR code and activation code.   |
+
+**My eSIMs**
+
+| Call                    | Why                                                                                     |
+| ----------------------- | --------------------------------------------------------------------------------------- |
+| `GET /esims`            | The guest's eSIMs, each with its install details, its plans and the data used.          |
+| `POST /esims/{id}/sync` | Asks the network for an eSIM's current data use, when the visitor presses Refresh data. |
+
+Errors from all of them share one shape (`code`, `message`, `trace_id`); the store branches on `code`. The full
+reference, with every field, is at [partners.heyatli.com/dev/api](https://partners.heyatli.com/dev/api/reference-api-heyatli-com).
+
 ### Building a real integration
 
 This store is a showcase: it makes each visitor a guest from a device id kept in the browser, so it needs no sign-up
