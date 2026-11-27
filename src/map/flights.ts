@@ -279,7 +279,7 @@ export function startFlights(layer: SVGGElement, options: FlightOptions): () => 
     if (flying) {
       const point = along(flight, progress);
       const landing = clamp01((age - lands) / 250);
-      const size = (0.62 - 0.12 * clamp01((progress - 0.8) / 0.2)) / k;
+      const size = (0.55 - 0.1 * clamp01((progress - 0.8) / 0.2)) / k;
       plane.style.opacity = String((1 - landing) * smooth(clamp01((age - BOARDING) / 200)));
       plane.setAttribute(
         'transform',

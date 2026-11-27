@@ -13,6 +13,8 @@
   --land-none: #d5dbe4;
   --land-covered: #a9c3f5;
   --land-own: #5e8ff2;
+  /* Planes and their trails: an ink that sits with the land, not on it. */
+  --flight: #55657d;
   --land-hover: #2f6fed;
   --land-highlight: #f59e0b;
   /* The price heatmap, cheapest to dearest: clear without shouting on a light page. */
@@ -57,6 +59,7 @@
   --land-none: #222a36;
   --land-covered: #323d4e;
   --land-own: #475468;
+  --flight: #b9c4d3;
   --land-hover: #6c7b93;
   --land-highlight: #fbbf24;
   --danger: #f87171;
@@ -597,32 +600,39 @@ input {
 
 .flight__trail {
   fill: none;
-  stroke: var(--accent);
-  stroke-width: 1.5;
-  stroke-opacity: 0.6;
+  stroke: var(--flight);
+  stroke-width: 1.2;
+  stroke-opacity: 0.4;
   stroke-linecap: round;
+  stroke-dasharray: 2 3;
   vector-effect: non-scaling-stroke;
 }
 
 .flight__ring {
   fill: none;
-  stroke: var(--accent);
-  stroke-width: 1.2;
+  stroke: var(--flight);
+  stroke-width: 1;
+  stroke-opacity: 0.6;
   vector-effect: non-scaling-stroke;
 }
 
 .flight__dot {
-  fill: var(--accent);
+  fill: var(--flight);
+  fill-opacity: 0.7;
 }
 
 .flight__plane {
-  fill: var(--accent);
+  fill: var(--flight);
+  fill-opacity: 0.8;
   pointer-events: all;
   cursor: pointer;
+  transition: fill 0.15s;
 }
 
+/* Pointed at, it takes the accent: it's a way in. */
 .flight__plane:hover {
-  fill: var(--text);
+  fill: var(--accent);
+  fill-opacity: 1;
 }
 
 .flight__hit {
