@@ -1,4 +1,4 @@
-import { ENV } from '../config';
+import { API_PATH, ENV } from '../config';
 import { AtliError } from './atli';
 
 /**
@@ -76,13 +76,13 @@ async function call<T>(method: string, path: string, body?: unknown, auth = true
   if (auth) headers.Authorization = `Bearer ${await accessToken()}`;
   let response: Response;
   try {
-    response = await fetch(new URL(path, ENV.apiBase), {
+    response = await fetch(new URL(`${API_PATH}${path}`, window.location.origin), {
       method,
       headers,
       body: body === undefined ? undefined : JSON.stringify(body),
     });
   } catch {
-    throw new AtliError(0, 'network_error', `Couldn't reach ${ENV.apiBase}.`);
+    throw new AtliError(0, 'network_error', "Couldn't reach the store's API.");
   }
   if (response.status === 401 && auth) token = null;
   if (!response.ok) {

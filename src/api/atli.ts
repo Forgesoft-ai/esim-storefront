@@ -1,4 +1,4 @@
-import { ENV } from '../config';
+import { API_PATH } from '../config';
 
 /**
  * A tiny client for the parts of Atli's eSIM API this storefront uses.
@@ -11,7 +11,8 @@ import { ENV } from '../config';
  * OpenAPI file:  https://api-staging.heyatli.com/openapi.yaml
  */
 
-const API_BASE = ENV.apiBase;
+// The store's own /api/…, forwarded to Atli's API (see src/config.ts).
+const api = (path: string) => new URL(`${API_PATH}${path}`, window.location.origin);
 
 /** One package: an amount of data for a number of days, at a price. */
 export interface Package {
@@ -72,7 +73,7 @@ export class AtliError extends Error {
 }
 
 async function get<T>(path: string, params: Record<string, string> = {}, locale?: string): Promise<T> {
-  const url = new URL(path, API_BASE);
+  const url = api(path);
   for (const [key, value] of Object.entries(params)) url.searchParams.set(key, value);
   let response: Response;
   try {
@@ -80,7 +81,7 @@ async function get<T>(path: string, params: Record<string, string> = {}, locale?
     response = await fetch(url, { headers: { Accept: 'application/json', ...(locale ? { 'X-Locale': locale } : {}) } });
   } catch {
     // The API only answers browsers on origins it allows. See the README's "Running it" section.
-    throw new AtliError(0, 'network_error', `Couldn't reach ${API_BASE}. Is this origin allowed?`);
+    throw new AtliError(0, 'network_error', "Couldn't reach the store's API.");
   }
   if (!response.ok) {
     const body = await response.json().catch(() => ({}));

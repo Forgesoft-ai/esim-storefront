@@ -36,24 +36,24 @@ describe('isDeviceId', () => {
 
 describe('the secret link', () => {
   it('carries the device in the fragment, which browsers never send to a server', () => {
-    page('https://forgesoft-ai.github.io/esim-storefront/?d=jp');
-    expect(secretLink(DEVICE)).toBe(`https://forgesoft-ai.github.io/esim-storefront/#device=${DEVICE}`);
+    page('https://map.examples.heyatli.com/?d=jp');
+    expect(secretLink(DEVICE)).toBe(`https://map.examples.heyatli.com/#device=${DEVICE}`);
   });
 
   it('is read once and then removed from the address, keeping the rest of it', () => {
-    const { url } = page(`https://forgesoft-ai.github.io/esim-storefront/?d=jp#device=${DEVICE}`);
+    const { url } = page(`https://map.examples.heyatli.com/?d=jp#device=${DEVICE}`);
     expect(takeDeviceFromLink()).toBe(DEVICE);
     expect(url.hash).toBe('');
     expect(url.search).toBe('?d=jp');
   });
 
   it('ignores a fragment that is not a device', () => {
-    page('https://forgesoft-ai.github.io/esim-storefront/#device=../../etc');
+    page('https://map.examples.heyatli.com/#device=../../etc');
     expect(takeDeviceFromLink()).toBeNull();
   });
 
   it('finds nothing when there is no link in the address', () => {
-    page('https://forgesoft-ai.github.io/esim-storefront/');
+    page('https://map.examples.heyatli.com/');
     expect(takeDeviceFromLink()).toBeNull();
   });
 });

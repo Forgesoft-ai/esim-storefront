@@ -1,10 +1,21 @@
 import react from '@vitejs/plugin-react';
 import { defineConfig } from 'vite';
 
+import { upstreamFor } from './worker/upstream.js';
+
+// The store calls its own /api/…; in development and preview, Vite forwards
+// those calls to Atli's API, as worker/index.js does in production.
+const api = {
+  '/api': {
+    target: upstreamFor(process.env.VITE_ATLI_ENV, process.env.VITE_ATLI_API_BASE),
+    changeOrigin: true,
+    rewrite: (path: string) => path.replace(/^\/api/, ''),
+  },
+};
+
 // https://vite.dev/config/
 export default defineConfig({
-  // GitHub Pages serves the store under /esim-storefront/; locally it's at /.
-  // The deploy workflow sets BASE_PATH (.github/workflows/pages.yml).
-  base: process.env.BASE_PATH ?? '/',
   plugins: [react()],
+  server: { proxy: api },
+  preview: { proxy: api },
 });

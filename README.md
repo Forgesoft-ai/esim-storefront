@@ -4,7 +4,7 @@ An open-source example of a travel eSIM store built on [Atli's eSIM API](https:/
 Pick a destination on a world map, choose a plan, pay, and install your eSIM. It's front-end only, with no sign-in: a
 guest account lives in your browser, and a private link brings it to any other.
 
-**Try it:** [forgesoft-ai.github.io/esim-storefront](https://forgesoft-ai.github.io/esim-storefront/)
+**Try it:** [map.examples.heyatli.com](https://map.examples.heyatli.com)
 
 ![The store on a desktop: a dark world map zoomed to Japan, with the plan panel open on its unlimited packages](docs/screenshots/desktop-dark.png)
 
@@ -65,8 +65,9 @@ Then open `http://localhost:5173`.
 
 ### Configuration
 
-[`src/config.ts`](src/config.ts) holds each environment's API, site and **referral code**. Every guest the store
-creates is linked to that code, so their purchases count for its partner.
+[`src/config.ts`](src/config.ts) holds each environment's site and **referral code**, and
+[`worker/upstream.js`](worker/upstream.js) its API. Every guest the store creates is linked to that code, so their
+purchases count for its partner.
 
 | Environment         | API                               | Referral code |
 | ------------------- | --------------------------------- | ------------- |
@@ -77,23 +78,37 @@ Forking it? Put your own partner code there. Sign in at [partners.heyatli.com](h
 one (it makes a partner account), and use a Sandbox account for the staging code. These variables override the file
 without editing it:
 
-| Variable                  | What it sets                     |
-| ------------------------- | -------------------------------- |
-| `VITE_ATLI_ENV`           | `staging` or `production`        |
-| `VITE_ATLI_API_BASE`      | The API address                  |
-| `VITE_ATLI_REFERRAL_CODE` | The referral code new guests get |
+| Variable                  | Read by       | What it sets                                         |
+| ------------------------- | ------------- | ---------------------------------------------------- |
+| `VITE_ATLI_ENV`           | the build     | `staging` or `production`: site and referral code    |
+| `VITE_ATLI_REFERRAL_CODE` | the build     | The referral code new guests get                     |
+| `VITE_ATLI_API_BASE`      | `npm run dev` | Another API address for the dev server to forward to |
+| `ATLI_ENV`                | the proxy     | `staging` or `production`: which API it forwards to  |
+| `ATLI_API_BASE`           | the proxy     | Another API address, overriding `ATLI_ENV`           |
 
-### Deploying
+### How the store reaches the API
 
-Every push to `main` builds the store and publishes it on GitHub Pages
-([`.github/workflows/pages.yml`](.github/workflows/pages.yml)), under `/esim-storefront/`. Pull requests and pushes
-also run [`.github/workflows/ci.yml`](.github/workflows/ci.yml): formatting, lint, types, tests and a build.
+The browser only ever calls the store's own address: `/api/explore/plans`, `/api/login` and so on. In development,
+Vite forwards those calls to Atli's API. In production, the small proxy in [`worker/index.js`](worker/index.js) does
+the same, and serves the built store from `dist/` for everything else.
+
+- It forwards only the calls the store makes, so it isn't an open proxy to the rest of the API.
+- It passes on what the API needs (the guest's token, language, the visitor's address for rate limits) and nothing
+  else: no cookies, no origin.
+- It's a standard Fetch-API module (`export default { fetch }`), so it runs anywhere that runs one, with the static
+  files bound as `ASSETS`.
+
+To run your own copy: `npm run build`, then serve `dist/` through the proxy.
+
+Pull requests and pushes run [`.github/workflows/ci.yml`](.github/workflows/ci.yml): formatting, lint, types, tests
+and a build.
 
 ## How it's built
 
 | Part                                                                     | What it does                                                         |
 | ------------------------------------------------------------------------ | -------------------------------------------------------------------- |
-| [`src/config.ts`](src/config.ts)                                         | The environment: API, site and referral code                         |
+| [`src/config.ts`](src/config.ts)                                         | The environment: site and referral code                              |
+| [`worker/`](worker)                                                      | The proxy: the store's `/api` forwarded to Atli's API                |
 | [`src/api/atli.ts`](src/api/atli.ts)                                     | The catalogue and currencies, and the shared error shape             |
 | [`src/api/account.ts`](src/api/account.ts)                               | The guest: device id, sign-in, referral, quote, purchase, eSIMs      |
 | [`src/api/site.ts`](src/api/site.ts)                                     | heyatli.com's destinations: countries, regions, states and cities    |
