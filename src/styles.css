@@ -13,14 +13,14 @@
   --land-own: #5e8ff2;
   --land-hover: #2f6fed;
   --land-highlight: #f59e0b;
-  /* The price heatmap, cheapest to dearest: soft, so it doesn't shout on a light page. */
-  --heat-0: #7fc09a;
-  --heat-1: #a3cf9b;
-  --heat-2: #c8dc9f;
-  --heat-3: #e8dfa0;
-  --heat-4: #ecc59a;
-  --heat-5: #e4a690;
-  --heat-6: #d68a87;
+  /* The price heatmap, cheapest to dearest: clear without shouting on a light page. */
+  --heat-0: #4cac75;
+  --heat-1: #84c67f;
+  --heat-2: #b7da84;
+  --heat-3: #f3df95;
+  --heat-4: #f4b97d;
+  --heat-5: #ec8969;
+  --heat-6: #d65d57;
   --danger: #b91c1c;
   --success: #15803d;
   --production: #c4320a;
@@ -62,14 +62,14 @@
   --on-production: #690005;
   --shadow: 0 10px 34px rgb(0 0 0 / 0.55);
   color-scheme: dark;
-  /* The heatmap, muted toward the slate, so it doesn't glow on a dark page. */
-  --heat-0: #3f7a5c;
-  --heat-1: #5a8758;
-  --heat-2: #7a9258;
-  --heat-3: #9a9459;
-  --heat-4: #a0805a;
-  --heat-5: #9c6a5b;
-  --heat-6: #935a5c;
+  /* The heatmap, a little muted toward the slate, so it doesn't glow on a dark page. */
+  --heat-0: #2c8956;
+  --heat-1: #60a25d;
+  --heat-2: #90b561;
+  --heat-3: #ccba72;
+  --heat-4: #ce975d;
+  --heat-5: #c86b4f;
+  --heat-6: #b54541;
 }
 
 * {
