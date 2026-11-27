@@ -549,10 +549,12 @@ input {
 }
 
 .country {
+  transition:
+    fill 120ms,
+    opacity 150ms;
   stroke: var(--ocean);
   stroke-width: 0.6;
   vector-effect: non-scaling-stroke;
-  transition: fill 120ms;
 }
 
 .country--none {
@@ -623,15 +625,12 @@ input {
   background: var(--accent);
 }
 
-/* While the heatmap is on, a selection shows as an outline, so it doesn't read as a price. */
-.map.has-heat .country.is-highlighted,
-.map.has-heat .country.is-focused {
-  stroke: var(--text);
-  stroke-width: 1.4;
-}
-
-.map.has-heat .country.is-focused {
-  stroke-width: 2.4;
+/*
+ * While the heatmap is on, a selection keeps its price colour and the rest of
+ * the world fades back, so what's picked stands out without a new colour.
+ */
+.map.has-heat.has-selection .country:not(.is-highlighted) {
+  opacity: 0.35;
 }
 
 .map.has-heat .country--own:hover,

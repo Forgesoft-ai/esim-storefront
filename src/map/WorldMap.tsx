@@ -181,7 +181,9 @@ export const WorldMap = memo(function WorldMap({
   );
 
   return (
-    <div className={`map${focused ? ' has-focus' : ''}${heat ? ' has-heat' : ''}`}>
+    <div
+      className={`map${focused ? ' has-focus' : ''}${heat ? ' has-heat' : ''}${highlighted.size ? ' has-selection' : ''}`}
+    >
       <svg
         ref={svgRef}
         viewBox={`0 0 ${WIDTH} ${HEIGHT}`}
