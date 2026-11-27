@@ -35,16 +35,21 @@ describe('isDeviceId', () => {
 });
 
 describe('the secret link', () => {
-  it('carries the device in the fragment, which browsers never send to a server', () => {
+  it('carries the device and its environment in the fragment, which browsers never send to a server', () => {
     page('https://map.examples.heyatli.com/?d=jp');
-    expect(secretLink(DEVICE)).toBe(`https://map.examples.heyatli.com/#device=${DEVICE}`);
+    expect(secretLink(DEVICE, 'production')).toBe(`https://map.examples.heyatli.com/#device=${DEVICE}&env=production`);
   });
 
   it('is read once and then removed from the address, keeping the rest of it', () => {
-    const { url } = page(`https://map.examples.heyatli.com/?d=jp#device=${DEVICE}`);
-    expect(takeDeviceFromLink()).toBe(DEVICE);
+    const { url } = page(`https://map.examples.heyatli.com/?d=jp#device=${DEVICE}&env=production`);
+    expect(takeDeviceFromLink()).toEqual({ id: DEVICE, environment: 'production' });
     expect(url.hash).toBe('');
     expect(url.search).toBe('?d=jp');
+  });
+
+  it('takes a link without an environment as Sandbox’s', () => {
+    page(`https://map.examples.heyatli.com/#device=${DEVICE}`);
+    expect(takeDeviceFromLink()).toEqual({ id: DEVICE, environment: 'sandbox' });
   });
 
   it('ignores a fragment that is not a device', () => {

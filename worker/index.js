@@ -1,15 +1,17 @@
-import { upstreamFor } from './upstream.js';
+import { isEnvironment, upstreamFor } from './upstream.js';
 
 /**
  * The store's server half, and all of it: serve the built store, and forward
  * its /api/… calls to Atli's eSIM API, so the browser only ever talks to the
  * store's own address.
  *
+ * The browser picks the environment in the path: `/api/sandbox/…` goes to
+ * Atli's Sandbox, `/api/production/…` to production.
+ *
  * It's a Fetch-API module (`export default { fetch }`), so it runs on
  * Cloudflare Workers, Deno or Bun. Configuration comes from the environment:
  *
- * - `ATLI_ENV`: `staging` (the default) or `production`.
- * - `ATLI_API_BASE`: another API address, overriding `ATLI_ENV`.
+ * - `ATLI_SANDBOX_API`, `ATLI_PRODUCTION_API`: another address for either API.
  * - `ASSETS`: whatever serves the built files from `dist/`. Without it, only
  *   /api is answered.
  *
@@ -67,14 +69,16 @@ export function isAllowed(method, path) {
  * Forward one /api/… request to Atli's API, and its answer back.
  *
  * @param {Request} request
- * @param {{ ATLI_ENV?: string, ATLI_API_BASE?: string }} env
+ * @param {{ ATLI_SANDBOX_API?: string, ATLI_PRODUCTION_API?: string }} env
  * @param {typeof fetch} [send]
  */
 export async function proxy(request, env, send = fetch) {
   const url = new URL(request.url);
-  const path = url.pathname.replace(/^\/api/, '') || '/';
+  // /api/<environment>/<path>
+  const [, , environment = '', ...rest] = url.pathname.split('/');
+  const path = `/${rest.join('/')}`;
   if (request.method === 'OPTIONS') return new Response(null, { status: 204 });
-  if (!isAllowed(request.method, path)) {
+  if (!isEnvironment(environment) || !isAllowed(request.method, path)) {
     return Response.json({ code: 'not_found', message: 'Not a call this store makes.' }, { status: 404 });
   }
 
@@ -87,7 +91,7 @@ export async function proxy(request, env, send = fetch) {
   const client = request.headers.get('cf-connecting-ip') ?? request.headers.get('x-forwarded-for');
   if (client) headers.set('x-forwarded-for', client);
 
-  const target = `${upstreamFor(env.ATLI_ENV, env.ATLI_API_BASE)}${path}${url.search}`;
+  const target = `${upstreamFor(environment, env)}${path}${url.search}`;
   const hasBody = request.method !== 'GET' && request.method !== 'HEAD';
   let answer;
   try {
@@ -111,7 +115,7 @@ export async function proxy(request, env, send = fetch) {
 export default {
   /**
    * @param {Request} request
-   * @param {{ ATLI_ENV?: string, ATLI_API_BASE?: string, ASSETS?: { fetch: typeof fetch } }} env
+   * @param {{ ATLI_SANDBOX_API?: string, ATLI_PRODUCTION_API?: string, ASSETS?: { fetch: typeof fetch } }} env
    */
   async fetch(request, env) {
     const { pathname } = new URL(request.url);

@@ -133,3 +133,19 @@ export const CloseIcon = (p: P) => (
     <path d="M18 6 6 18M6 6l12 12" />
   </Icon>
 );
+
+/** The flask Atli's sites mark Sandbox with (lucide's FlaskConical). */
+export const FlaskIcon = (p: P) => (
+  <Icon {...p}>
+    <path d="M14 2v6a2 2 0 0 0 .245.96l5.51 10.08A2 2 0 0 1 18 22H6a2 2 0 0 1-1.755-2.96l5.51-10.08A2 2 0 0 0 10 8V2" />
+    <path d="M6.453 15h11.094" />
+    <path d="M8.5 2h7" />
+  </Icon>
+);
+
+export const GlobeIcon = (p: P) => (
+  <Icon {...p}>
+    <circle cx="12" cy="12" r="10" />
+    <path d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z" />
+  </Icon>
+);

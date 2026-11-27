@@ -1,4 +1,4 @@
-import { API_PATH, ENV } from '../config';
+import { ENV, type EnvironmentName, isEnvironmentName } from '../config';
 import { AtliError } from './atli';
 
 /**
@@ -11,22 +11,23 @@ import { AtliError } from './atli';
  * sent anywhere but Atli's API.
  */
 
-const DEVICE_KEY = 'esim-storefront:device';
-const LINKED_KEY = 'esim-storefront:referral-linked';
+/** Each environment has its own accounts, so its own device: a Sandbox guest isn't a production one. */
+const deviceKey = (environment: EnvironmentName) => `esim-storefront:${environment}:device`;
+const LINKED_KEY = `esim-storefront:${ENV.name}:referral-linked`;
 /** Renew a little before the token's 15 minutes are up. */
 const EXPIRY_MARGIN_MS = 60_000;
 
-export function storedDevice(): string | null {
+export function storedDevice(environment: EnvironmentName = ENV.name): string | null {
   try {
-    return localStorage.getItem(DEVICE_KEY);
+    return localStorage.getItem(deviceKey(environment));
   } catch {
     return null;
   }
 }
 
-function storeDevice(id: string) {
+function storeDevice(id: string, environment: EnvironmentName = ENV.name) {
   try {
-    localStorage.setItem(DEVICE_KEY, id);
+    localStorage.setItem(deviceKey(environment), id);
   } catch {
     // Without storage the device lasts this visit; the secret link still brings it back.
   }
@@ -42,30 +43,36 @@ export function deviceId(): string {
   return id;
 }
 
-/** Use another device, from a secret link. Its token is fetched fresh. */
-export function adoptDevice(id: string) {
-  storeDevice(id);
-  token = null;
+/** Use another device, from a secret link, in its environment. Its token is fetched fresh. */
+export function adoptDevice(id: string, environment: EnvironmentName = ENV.name) {
+  storeDevice(id, environment);
+  if (environment === ENV.name) token = null;
 }
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 export const isDeviceId = (value: string | null | undefined): value is string => !!value && UUID.test(value);
 
 /**
- * The link that opens this store on this device's eSIMs in any browser. The id
- * rides in the fragment (`#device=…`), which browsers never send to a server.
+ * The link that opens this store on this device's eSIMs in any browser, in its
+ * environment. The id rides in the fragment (`#device=…&env=…`), which
+ * browsers never send to a server.
  */
-export function secretLink(id: string): string {
-  return `${window.location.origin}${window.location.pathname}#device=${id}`;
+export function secretLink(id: string, environment: EnvironmentName = ENV.name): string {
+  return `${window.location.origin}${window.location.pathname}#device=${id}&env=${environment}`;
 }
 
-/** A device id from a secret link in the current address, removed from the address once read. */
-export function takeDeviceFromLink(): string | null {
-  const match = window.location.hash.match(/device=([^&]+)/);
-  if (!match) return null;
+/**
+ * The device and environment of a secret link in the current address, removed
+ * from the address once read. A link without an environment is Sandbox's.
+ */
+export function takeDeviceFromLink(): { id: string; environment: EnvironmentName } | null {
+  const params = new URLSearchParams(window.location.hash.replace(/^#/, ''));
+  const id = params.get('device');
+  if (!id) return null;
   window.history.replaceState(null, '', window.location.pathname + window.location.search);
-  const id = decodeURIComponent(match[1]);
-  return isDeviceId(id) ? id : null;
+  const environment = params.get('env');
+  if (!isDeviceId(id)) return null;
+  return { id, environment: isEnvironmentName(environment) ? environment : 'sandbox' };
 }
 
 let token: { value: string; device: string; expires: number } | null = null;
@@ -76,7 +83,7 @@ async function call<T>(method: string, path: string, body?: unknown, auth = true
   if (auth) headers.Authorization = `Bearer ${await accessToken()}`;
   let response: Response;
   try {
-    response = await fetch(new URL(`${API_PATH}${path}`, window.location.origin), {
+    response = await fetch(new URL(`${ENV.apiPath}${path}`, window.location.origin), {
       method,
       headers,
       body: body === undefined ? undefined : JSON.stringify(body),

@@ -1,4 +1,4 @@
-import { API_PATH } from '../config';
+import { ENV } from '../config';
 
 /**
  * A tiny client for the parts of Atli's eSIM API this storefront uses.
@@ -12,7 +12,7 @@ import { API_PATH } from '../config';
  */
 
 // The store's own /api/…, forwarded to Atli's API (see src/config.ts).
-const api = (path: string) => new URL(`${API_PATH}${path}`, window.location.origin);
+const api = (path: string) => new URL(`${ENV.apiPath}${path}`, window.location.origin);
 
 /** One package: an amount of data for a number of days, at a price. */
 export interface Package {

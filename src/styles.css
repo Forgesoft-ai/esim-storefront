@@ -15,6 +15,8 @@
   --land-highlight: #f59e0b;
   --danger: #b91c1c;
   --success: #15803d;
+  --production: #c4320a;
+  --on-production: #ffffff;
   --radius: 12px;
   --shadow: 0 8px 30px rgb(15 23 41 / 0.12);
   color-scheme: light;
@@ -48,6 +50,8 @@
   --land-highlight: #fbbf24;
   --danger: #f87171;
   --success: #4ade80;
+  --production: #ffb4ab;
+  --on-production: #690005;
   --shadow: 0 10px 34px rgb(0 0 0 / 0.55);
   color-scheme: dark;
 }
@@ -173,6 +177,51 @@ input {
   width: 12px;
   height: 12px;
   flex-shrink: 0;
+}
+
+/* Sandbox or Production, as on Atli's Partners site */
+
+.env-switch {
+  grid-column: 1;
+  justify-self: start;
+  display: flex;
+  padding: 3px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--surface-2);
+}
+
+.env-switch__option {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border: 0;
+  border-radius: 999px;
+  background: none;
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 600;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.env-switch__option:hover {
+  color: var(--text);
+}
+
+.env-switch__option[aria-pressed='true'] {
+  box-shadow: 0 1px 2px rgb(0 0 0 / 0.15);
+}
+
+.env-switch__option--sandbox[aria-pressed='true'] {
+  background: #facc15;
+  color: #422006;
+}
+
+.env-switch__option--production[aria-pressed='true'] {
+  background: var(--production);
+  color: var(--on-production);
 }
 
 /* Language and currency pickers */
@@ -1092,6 +1141,27 @@ input {
 
   .label-wide {
     display: none;
+  }
+
+  /* Room for the pickers: the environments show only their icons, the chosen one coloured. Their words stay for screen readers. */
+  .topbar {
+    gap: 8px;
+  }
+
+  .env-switch {
+    margin-inline-end: auto;
+  }
+
+  .env-switch__option {
+    padding: 8px 10px;
+  }
+
+  .env-switch__option span {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
   }
 
   .picker__trigger {

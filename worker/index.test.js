@@ -27,24 +27,35 @@ describe('isAllowed', () => {
 describe('proxy', () => {
   it('forwards an allowed call to the environment’s API, query included', async () => {
     const send = api();
-    await proxy(new Request('https://map.example/api/explore/plans?currency=EUR'), {}, send);
+    await proxy(new Request('https://map.example/api/sandbox/explore/plans?currency=EUR'), {}, send);
     expect(send).toHaveBeenCalledWith(
       'https://api-staging.heyatli.com/explore/plans?currency=EUR',
       expect.objectContaining({ method: 'GET' }),
     );
   });
 
-  it('goes to production, or to an override, when told to', async () => {
+  it('goes to the environment in the path, or to an override for it', async () => {
     const send = api();
-    await proxy(new Request('https://map.example/api/currencies'), { ATLI_ENV: 'production' }, send);
+    await proxy(new Request('https://map.example/api/production/currencies'), {}, send);
     expect(send.mock.calls[0][0]).toBe('https://api.heyatli.com/currencies');
-    await proxy(new Request('https://map.example/api/currencies'), { ATLI_API_BASE: 'http://localhost:8080/' }, send);
+    await proxy(
+      new Request('https://map.example/api/sandbox/currencies'),
+      { ATLI_SANDBOX_API: 'http://localhost:8080/' },
+      send,
+    );
     expect(send.mock.calls[1][0]).toBe('http://localhost:8080/currencies');
+  });
+
+  it('answers 404 for an environment it does not know', async () => {
+    const send = api();
+    const answer = await proxy(new Request('https://map.example/api/qa/currencies'), {}, send);
+    expect(answer.status).toBe(404);
+    expect(send).not.toHaveBeenCalled();
   });
 
   it('passes the body and the headers the API needs, and nothing else', async () => {
     const send = api();
-    const request = new Request('https://map.example/api/plan/quote', {
+    const request = new Request('https://map.example/api/sandbox/plan/quote', {
       method: 'POST',
       body: '{"product_id":"p"}',
       headers: {
@@ -73,7 +84,11 @@ describe('proxy', () => {
         { status: 429, headers: { 'retry-after': '30', 'set-cookie': 'x=y' } },
       ),
     );
-    const answer = await proxy(new Request('https://map.example/api/login', { method: 'POST', body: '{}' }), {}, send);
+    const answer = await proxy(
+      new Request('https://map.example/api/sandbox/login', { method: 'POST', body: '{}' }),
+      {},
+      send,
+    );
     expect(answer.status).toBe(429);
     expect(answer.headers.get('retry-after')).toBe('30');
     expect(answer.headers.get('set-cookie')).toBeNull();
@@ -82,7 +97,7 @@ describe('proxy', () => {
 
   it('answers 404 without calling the API for a call the store does not make', async () => {
     const send = api();
-    const answer = await proxy(new Request('https://map.example/api/user/profile'), {}, send);
+    const answer = await proxy(new Request('https://map.example/api/sandbox/user/profile'), {}, send);
     expect(answer.status).toBe(404);
     expect(send).not.toHaveBeenCalled();
   });
@@ -91,7 +106,7 @@ describe('proxy', () => {
     const send = vi.fn(async () => {
       throw new TypeError('network');
     });
-    const answer = await proxy(new Request('https://map.example/api/currencies'), {}, send);
+    const answer = await proxy(new Request('https://map.example/api/sandbox/currencies'), {}, send);
     expect(answer.status).toBe(502);
   });
 });
@@ -106,9 +121,9 @@ describe('the worker', () => {
 });
 
 describe('upstreamFor', () => {
-  it('is Sandbox unless production is asked for', () => {
-    expect(upstreamFor(undefined)).toBe('https://api-staging.heyatli.com');
-    expect(upstreamFor('staging')).toBe('https://api-staging.heyatli.com');
+  it("is each environment's API, unless overridden", () => {
+    expect(upstreamFor('sandbox')).toBe('https://api-staging.heyatli.com');
     expect(upstreamFor('production')).toBe('https://api.heyatli.com');
+    expect(upstreamFor('production', { ATLI_SANDBOX_API: 'http://x' })).toBe('https://api.heyatli.com');
   });
 });

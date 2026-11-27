@@ -3,12 +3,13 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { fetchDestinations, type SiteDestination } from './api/site';
 import { AtliError, type Currency, fetchCurrencies, fetchPlans, type Package, type Plan } from './api/atli';
 import { adoptDevice, storedDevice, takeDeviceFromLink } from './api/account';
-import { IS_SANDBOX } from './config';
+import { ENV, IS_SANDBOX, switchEnvironment } from './config';
 import { CheckoutDialog } from './components/CheckoutDialog';
 import { returningOrder } from './returningOrder';
 import { SimIcon } from './components/icons';
 import { MyEsims } from './components/MyEsims';
 import { CurrencyPicker } from './components/CurrencyPicker';
+import { EnvironmentSwitch } from './components/EnvironmentSwitch';
 import { LanguagePicker } from './components/LanguagePicker';
 import { I18nProvider } from './i18n/I18n';
 import { initialLocale, isRtl, type Locale, rememberLocale } from './i18n/locales';
@@ -31,6 +32,26 @@ import { countryName } from './map/geography';
 import { type Coverage, WorldMap } from './map/WorldMap';
 
 const CURRENCY_KEY = 'esim-storefront:currency';
+const OPEN_ESIMS_KEY = 'esim-storefront:open-esims';
+
+/** Carry "open My eSIMs" across the reload a secret link from the other environment causes. */
+function rememberEsimsOpen() {
+  try {
+    sessionStorage.setItem(OPEN_ESIMS_KEY, '1');
+  } catch {
+    // The eSIMs are a click away under My eSIMs.
+  }
+}
+
+function takeEsimsOpen(): boolean {
+  try {
+    const open = sessionStorage.getItem(OPEN_ESIMS_KEY) === '1';
+    sessionStorage.removeItem(OPEN_ESIMS_KEY);
+    return open;
+  } catch {
+    return false;
+  }
+}
 /** The plan panel's width and its margin, from styles.css (.panel). */
 const PANEL_INSET = 420 + 32;
 const WIDE = '(min-width: 721px)';
@@ -119,7 +140,7 @@ export default function App() {
     return order ? { resumeOrder: order } : null;
   });
   const [hasDevice, setHasDevice] = useState(() => !!storedDevice());
-  const [showEsims, setShowEsims] = useState(false);
+  const [showEsims, setShowEsims] = useState(takeEsimsOpen);
 
   // A secret link (#device=…) brings a device's eSIMs to this browser: on
   // arrival, or pasted into the address bar of an open store, which only
@@ -128,12 +149,18 @@ export default function App() {
     const restore = () => {
       const linked = takeDeviceFromLink();
       if (!linked) return;
-      const current = storedDevice();
-      if (current && current !== linked) {
+      const current = storedDevice(linked.environment);
+      if (current && current !== linked.id) {
         const replace = window.confirm(translate(localeRef.current, 'app.switchDevice'));
         if (!replace) return;
       }
-      adoptDevice(linked);
+      adoptDevice(linked.id, linked.environment);
+      // A link from the other environment switches to it, and opens its eSIMs there.
+      if (linked.environment !== ENV.name) {
+        rememberEsimsOpen();
+        switchEnvironment(linked.environment);
+        return;
+      }
       setHasDevice(true);
       setShowEsims(true);
     };
@@ -286,6 +313,7 @@ export default function App() {
     <I18nProvider locale={locale}>
       <div className="app">
         <header className="topbar">
+          <EnvironmentSwitch />
           {catalogue ? (
             <SearchBox catalogue={catalogue} onPick={choose} formatFrom={formatFrom} />
           ) : (

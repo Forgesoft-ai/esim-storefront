@@ -9,9 +9,9 @@ guest account lives in your browser, and a private link brings it to any other.
 ![The store on a desktop: a dark world map zoomed to Japan, with the plan panel open on its unlimited packages](docs/screenshots/desktop-dark.png)
 
 > [!IMPORTANT]
-> This store talks to Atli's **Sandbox** (`https://api-staging.heyatli.com`). Sandbox has its own accounts, takes test
-> cards only (`4242 4242 4242 4242`, any future expiry, any CVC), and its eSIMs come from a test carrier, so they can't
-> be installed on a phone. Nothing here charges real money.
+> The switch at the top left picks Atli's **Sandbox** (the default) or **Production**. Sandbox has its own accounts,
+> takes test cards only (`4242 4242 4242 4242`, any future expiry, any CVC), and its eSIMs come from a test carrier, so
+> they can't be installed on a phone. **Production charges real cards and issues real eSIMs.**
 
 ## What it does
 
@@ -29,6 +29,8 @@ guest account lives in your browser, and a private link brings it to any other.
 - **No account, a private link.** The guest is a device id kept in this browser. The private link
   (`…/#device=<id>`) restores it anywhere; the id rides in the fragment, which browsers never send to a server.
 - **My eSIMs**: every eSIM on the device, its plans, data left and install details.
+- **Sandbox or Production**, switched at the top left as on Atli's Partners site. Each has its own guest, eSIMs and
+  private link; a private link opens in its own environment.
 - **15 languages** with the same choice of default as Atli's sites (your pick, then your browser's languages, then
   English), right to left for Arabic. Names of places and plans come from the API in that language. **11 currencies**,
   and a light and dark theme.
@@ -71,25 +73,21 @@ purchases count for its partner.
 
 | Environment         | API                               | Referral code |
 | ------------------- | --------------------------------- | ------------- |
-| `staging` (default) | `https://api-staging.heyatli.com` | `DMITRY-STG`  |
+| `sandbox` (default) | `https://api-staging.heyatli.com` | `DMITRY-STG`  |
 | `production`        | `https://api.heyatli.com`         | `ATLI-8CS9`   |
 
-Forking it? Put your own partner code there. Sign in at [partners.heyatli.com](https://partners.heyatli.com) to get
-one (it makes a partner account), and use a Sandbox account for the staging code. These variables override the file
-without editing it:
+Forking it? Put your own partner codes there. Sign in at [partners.heyatli.com](https://partners.heyatli.com) to get
+one (it makes a partner account), and use a Sandbox account for the Sandbox code.
 
-| Variable                  | Read by       | What it sets                                         |
-| ------------------------- | ------------- | ---------------------------------------------------- |
-| `VITE_ATLI_ENV`           | the build     | `staging` or `production`: site and referral code    |
-| `VITE_ATLI_REFERRAL_CODE` | the build     | The referral code new guests get                     |
-| `VITE_ATLI_API_BASE`      | `npm run dev` | Another API address for the dev server to forward to |
-| `ATLI_ENV`                | the proxy     | `staging` or `production`: which API it forwards to  |
-| `ATLI_API_BASE`           | the proxy     | Another API address, overriding `ATLI_ENV`           |
+| Variable                                  | Read by                     | What it sets                                   |
+| ----------------------------------------- | --------------------------- | ---------------------------------------------- |
+| `VITE_ATLI_ENV`                           | the build                   | `production` to start there instead of Sandbox |
+| `ATLI_SANDBOX_API`, `ATLI_PRODUCTION_API` | the proxy and `npm run dev` | Another address for either API                 |
 
 ### How the store reaches the API
 
-The browser only ever calls the store's own address: `/api/explore/plans`, `/api/login` and so on. In development,
-Vite forwards those calls to Atli's API. In production, the small proxy in [`worker/index.js`](worker/index.js) does
+The browser only ever calls the store's own address, with the environment in the path: `/api/sandbox/explore/plans`,
+`/api/production/login` and so on. In development, Vite forwards those calls to that environment's API. In production, the small proxy in [`worker/index.js`](worker/index.js) does
 the same, and serves the built store from `dist/` for everything else.
 
 - It forwards only the calls the store makes, so it isn't an open proxy to the rest of the API.
