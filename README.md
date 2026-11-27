@@ -9,7 +9,7 @@ guest account lives in your browser, and a private link brings it to any other.
 ![The store on a desktop: a dark world map zoomed to Japan, with the plan panel open on its unlimited packages](docs/screenshots/desktop-dark.png)
 
 > [!IMPORTANT]
-> The switch at the top left picks Atli's **Sandbox** (the default) or **Production**. Sandbox has its own accounts,
+> The switch at the top left picks Atli's **Production** (the default) or **Sandbox**. Sandbox has its own accounts,
 > takes test cards only (`4242 4242 4242 4242`, any future expiry, any CVC), and its eSIMs come from a test carrier, so
 > they can't be installed on a phone. **Production charges real cards and issues real eSIMs.**
 
@@ -69,19 +69,20 @@ Then open `http://localhost:5173`.
 [`worker/upstream.js`](worker/upstream.js) its API. Every guest the store creates is linked to that code, so their
 purchases count for its partner.
 
-| Environment         | API                               | Referral code |
-| ------------------- | --------------------------------- | ------------- |
-| `sandbox` (default) | `https://api-staging.heyatli.com` | `DMITRY-STG`  |
-| `production`        | `https://api.heyatli.com`         | `ATLI-8CS9`   |
+| Environment            | API                               | Referral code |
+| ---------------------- | --------------------------------- | ------------- |
+| `production` (default) | `https://api.heyatli.com`         | `ATLI-8CS9`   |
+| `sandbox`              | `https://api-staging.heyatli.com` | `DMITRY-STG`  |
 
 Forking it? Put your own partner codes there. Sign in at [partners.heyatli.com](https://partners.heyatli.com) to get
 one (it makes a partner account), and use a Sandbox account for the Sandbox code.
 
-| Variable                                  | Read by                     | What it sets                                   |
-| ----------------------------------------- | --------------------------- | ---------------------------------------------- |
-| `VITE_ATLI_ENV`                           | the build                   | `production` to start there instead of Sandbox |
-| `VITE_ATLI_API`                           | the build                   | `direct` to call Atli's API without the proxy  |
-| `ATLI_SANDBOX_API`, `ATLI_PRODUCTION_API` | the proxy and `npm run dev` | Another address for either API                 |
+| Variable                                  | Read by                     | What it sets                                              |
+| ----------------------------------------- | --------------------------- | --------------------------------------------------------- |
+| `VITE_ATLI_ENV`                           | the build                   | `sandbox` to start there instead of Production            |
+| `VITE_ATLI_ENV_SWITCH`                    | the build                   | `off` hides the switch and keeps the store on its default |
+| `VITE_ATLI_API`                           | the build                   | `direct` to call Atli's API without the proxy             |
+| `ATLI_SANDBOX_API`, `ATLI_PRODUCTION_API` | the proxy and `npm run dev` | Another address for either API                            |
 
 ### How the store reaches the API
 

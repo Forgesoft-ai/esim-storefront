@@ -4,9 +4,10 @@
  *
  * The visitor picks Sandbox or Production with the switch in the header; the
  * choice is kept in this browser and holds for the whole page, so switching
- * reloads it. Sandbox is the default: test cards only, nothing real is
- * charged or delivered. A build can start on production with
- * `VITE_ATLI_ENV=production`.
+ * reloads it. Production is the default; a build can start on Sandbox (test
+ * cards only, nothing real charged or delivered) with `VITE_ATLI_ENV=sandbox`.
+ * A build with `VITE_ATLI_ENV_SWITCH=off` hides the switch and stays on its
+ * default, whatever the visitor chose before.
  *
  * Every person this store creates is linked to the environment's referral
  * code (`POST /user/referral/redeem`), so their purchases count for that
@@ -56,14 +57,22 @@ const STORAGE_KEY = 'esim-storefront:environment';
 export const isEnvironmentName = (value: unknown): value is EnvironmentName =>
   value === 'sandbox' || value === 'production';
 
+/** The build's environment: Production unless it says Sandbox. */
+export const DEFAULT_ENVIRONMENT: EnvironmentName =
+  import.meta.env.VITE_ATLI_ENV === 'sandbox' ? 'sandbox' : 'production';
+
+/** Whether the visitor may switch environments; a build can lock the store to its default. */
+export const CAN_SWITCH_ENVIRONMENT = import.meta.env.VITE_ATLI_ENV_SWITCH !== 'off';
+
 function initialEnvironment(): EnvironmentName {
+  if (!CAN_SWITCH_ENVIRONMENT) return DEFAULT_ENVIRONMENT;
   try {
     const stored = localStorage.getItem(STORAGE_KEY);
     if (isEnvironmentName(stored)) return stored;
   } catch {
     // No storage: the build's default.
   }
-  return import.meta.env.VITE_ATLI_ENV === 'production' ? 'production' : 'sandbox';
+  return DEFAULT_ENVIRONMENT;
 }
 
 /** The environment for this page load. */
@@ -93,7 +102,7 @@ export function rememberEnvironment(name: EnvironmentName) {
  * guest and its eSIMs, Stripe) belongs to one, so the page starts again.
  */
 export function switchEnvironment(name: EnvironmentName) {
-  if (name === ENV.name) return;
+  if (name === ENV.name || !CAN_SWITCH_ENVIRONMENT) return;
   rememberEnvironment(name);
   window.location.reload();
 }

@@ -21,3 +21,37 @@ describe('apiUrl', () => {
     expect(apiUrl('/currencies', ENVIRONMENTS.production, true).href).toBe('https://api.heyatli.com/currencies');
   });
 });
+
+describe('the environment for a page', () => {
+  async function load(env: Record<string, string>, stored?: string) {
+    vi.resetModules();
+    vi.unstubAllEnvs();
+    for (const [key, value] of Object.entries(env)) vi.stubEnv(key, value);
+    vi.stubGlobal('localStorage', {
+      getItem: (key: string) => (key === 'esim-storefront:environment' ? (stored ?? null) : null),
+      setItem: () => {},
+    });
+    return import('./config');
+  }
+
+  afterEach(() => {
+    vi.unstubAllEnvs();
+  });
+
+  it('is Production by default, or Sandbox when the build says so', async () => {
+    expect((await load({})).ENV.name).toBe('production');
+    expect((await load({ VITE_ATLI_ENV: 'sandbox' })).ENV.name).toBe('sandbox');
+  });
+
+  it("follows the visitor's choice while the switch is on", async () => {
+    const config = await load({}, 'sandbox');
+    expect(config.CAN_SWITCH_ENVIRONMENT).toBe(true);
+    expect(config.ENV.name).toBe('sandbox');
+  });
+
+  it('stays on the default, whatever was chosen, when the build turns the switch off', async () => {
+    const config = await load({ VITE_ATLI_ENV_SWITCH: 'off' }, 'sandbox');
+    expect(config.CAN_SWITCH_ENVIRONMENT).toBe(false);
+    expect(config.ENV.name).toBe('production');
+  });
+});

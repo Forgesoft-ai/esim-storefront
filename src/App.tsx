@@ -3,7 +3,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { fetchDestinations, type SiteDestination } from './api/site';
 import { AtliError, type Currency, fetchCurrencies, fetchPlans, type Package, type Plan } from './api/atli';
 import { adoptDevice, storedDevice, takeDeviceFromLink } from './api/account';
-import { ENV, IS_SANDBOX, switchEnvironment } from './config';
+import { CAN_SWITCH_ENVIRONMENT, ENV, IS_SANDBOX, switchEnvironment } from './config';
 import { CheckoutDialog } from './components/CheckoutDialog';
 import { returningOrder } from './returningOrder';
 import { SimIcon } from './components/icons';
@@ -168,6 +168,8 @@ export default function App() {
     const restore = () => {
       const linked = takeDeviceFromLink();
       if (!linked) return;
+      // A store locked to one environment can't open another's eSIMs.
+      if (linked.environment !== ENV.name && !CAN_SWITCH_ENVIRONMENT) return;
       const current = storedDevice(linked.environment);
       if (current && current !== linked.id) {
         const replace = window.confirm(translate(localeRef.current, 'app.switchDevice'));
@@ -342,7 +344,7 @@ export default function App() {
     <I18nProvider locale={locale}>
       <div className="app">
         <header className="topbar">
-          <EnvironmentSwitch />
+          {CAN_SWITCH_ENVIRONMENT ? <EnvironmentSwitch /> : null}
           {catalogue ? (
             <SearchBox catalogue={catalogue} onPick={choose} formatFrom={formatFrom} />
           ) : (
