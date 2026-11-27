@@ -33,20 +33,20 @@
 }
 
 :root[data-theme='dark'] {
-  --bg: #0a0a0b;
-  --surface: #141416;
-  --surface-2: #1d1d20;
-  --border: #2b2b30;
-  --text: #ededef;
-  --muted: #9b9ba3;
+  --bg: #0f141b;
+  --surface: #161d27;
+  --surface-2: #1e2733;
+  --border: #2b3544;
+  --text: #e6ebf2;
+  --muted: #98a3b4;
   --accent: #5b8cff;
-  --accent-text: #0a0a0b;
-  --accent-soft: #1b2338;
-  /* Greys, not blues: the dark map stays close to black, with amber for what's picked. */
-  --land-none: #242428;
-  --land-covered: #3a3a41;
-  --land-own: #55555f;
-  --land-hover: #7a7a86;
+  --accent-text: #0f141b;
+  --accent-soft: #1c2a44;
+  /* Slate greys with a little blue: the dark map stays calm, with amber for what's picked. */
+  --land-none: #222a36;
+  --land-covered: #323d4e;
+  --land-own: #475468;
+  --land-hover: #6c7b93;
   --land-highlight: #fbbf24;
   --danger: #f87171;
   --success: #4ade80;
