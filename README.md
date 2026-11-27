@@ -39,15 +39,11 @@ guest account lives in your browser, and a private link brings it to any other.
 
 ## Screenshots
 
-| Choosing Asia for Japan lights up every country it covers                      | Checkout: the partner discount, then Stripe's card form                      |
-| ------------------------------------------------------------------------------ | ---------------------------------------------------------------------------- |
-| ![The light theme, Japan on the Asia plan](docs/screenshots/desktop-light.png) | ![The checkout popup with a partner discount](docs/screenshots/checkout.png) |
-
-<p>
-  <img src="docs/screenshots/phone-start.png" alt="On a phone: the map, region quick picks and popular destinations" width="260">
-  &nbsp;
-  <img src="docs/screenshots/phone-plans.png" alt="On a phone: Thailand's plans in a bottom sheet, with Pay" width="260">
-</p>
+| Choosing Asia for Japan lights up every country it covers                      | The price heatmap: every country by its lowest price                                                                                                                                                                                                    |
+| ------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| ![The light theme, Japan on the Asia plan](docs/screenshots/desktop-light.png) | ![The price heatmap with Europe selected](docs/screenshots/heatmap.png)                                                                                                                                                                                 |
+| **Checkout: the partner discount, then Stripe's card form**                    | **On a phone: quick picks, then a destination's plans**                                                                                                                                                                                                 |
+| ![The checkout popup with a partner discount](docs/screenshots/checkout.png)   | <img src="docs/screenshots/phone-start.png" alt="On a phone: the map, region quick picks and popular destinations" width="48%"> <img src="docs/screenshots/phone-plans.png" alt="On a phone: Thailand's plans in a bottom sheet, with Pay" width="48%"> |
 
 ## Running it
 
