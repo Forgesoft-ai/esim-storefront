@@ -6,6 +6,7 @@ import { memo, type ReactNode, useEffect, useMemo, useRef, useState } from 'reac
 
 import { HeatIcon } from '../components/icons';
 import { useI18n } from '../i18n/context';
+import { startFlights } from './flights';
 import { COUNTRY_FEATURES, DOT_COUNTRIES } from './geography';
 
 /** No animation for anyone who asks for reduced motion. */
@@ -93,7 +94,23 @@ export const WorldMap = memo(function WorldMap({
   const zoomRef = useRef<ZoomBehavior<SVGSVGElement, unknown>>(null);
   const { t } = useI18n();
   const [scale, setScale] = useState(1);
-  const [hover, setHover] = useState<{ code: string; x: number; y: number } | null>(null);
+  const [hover, setHover] = useState<{ code: string; x: number; y: number; plane?: boolean } | null>(null);
+
+  // What the flights read on every frame, without restarting them.
+  const live = useRef({ scale, coverage, onSelect, busy: highlighted.size > 0 });
+  live.current = { scale, coverage, onSelect, busy: highlighted.size > 0 };
+
+  useEffect(() => {
+    if (!layerRef.current || motion(1) === 0) return;
+    return startFlights(layerRef.current, {
+      project: (lonLat) => projection(lonLat),
+      scale: () => live.current.scale,
+      enabled: () => !live.current.busy && live.current.scale < 1.5 && !document.hidden,
+      sold: (code) => live.current.coverage(code) !== 'none',
+      onHover: (at) => setHover(at ? { ...at, plane: true } : null),
+      onPick: (code) => live.current.onSelect(code),
+    });
+  }, []);
 
   useEffect(() => {
     const svg = select(svgRef.current!);
@@ -239,6 +256,7 @@ export const WorldMap = memo(function WorldMap({
 
       {hover ? (
         <div className="map__tooltip" style={{ left: hover.x, top: hover.y }} aria-hidden>
+          {hover.plane ? '✈ ' : ''}
           {label(hover.code)}
         </div>
       ) : null}

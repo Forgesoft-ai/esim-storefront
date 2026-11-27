@@ -590,6 +590,45 @@ input {
   stroke-width: 1;
 }
 
+/* Planes crossing the map: see map/flights.ts. */
+.flights {
+  pointer-events: none;
+}
+
+.flight__trail {
+  fill: none;
+  stroke: var(--accent);
+  stroke-width: 1.5;
+  stroke-opacity: 0.6;
+  stroke-linecap: round;
+  vector-effect: non-scaling-stroke;
+}
+
+.flight__ring {
+  fill: none;
+  stroke: var(--accent);
+  stroke-width: 1.2;
+  vector-effect: non-scaling-stroke;
+}
+
+.flight__dot {
+  fill: var(--accent);
+}
+
+.flight__plane {
+  fill: var(--accent);
+  pointer-events: all;
+  cursor: pointer;
+}
+
+.flight__plane:hover {
+  fill: var(--text);
+}
+
+.flight__hit {
+  fill: transparent;
+}
+
 .map__controls {
   position: absolute;
   inset-inline-start: 16px;
@@ -1288,8 +1327,32 @@ input {
     inset-inline-start: 60px;
   }
 
+  /* One slim row beside the toggle: cheapest, the colours, dearest. */
+  .heat-legend {
+    flex-direction: row;
+    align-items: center;
+    gap: 6px;
+    height: 32px;
+    padding: 0 9px;
+    border-radius: 999px;
+    font-size: 11px;
+  }
+
+  .heat-legend figcaption {
+    display: none;
+  }
+
+  .heat-legend__ends {
+    display: contents;
+  }
+
+  .heat-legend__ends span:first-child {
+    order: -1;
+  }
+
   .heat-legend__bar {
-    width: 120px;
+    width: 56px;
+    height: 6px;
   }
 
   /* The world is wide and a phone is tall: the map gets the top, quick picks the rest. */
@@ -1508,6 +1571,199 @@ input {
 
 .muted {
   color: var(--muted);
+}
+
+/* First visit: a popover beside the search, what this is in four steps */
+
+.onboarding {
+  position: fixed;
+  z-index: 40;
+  display: flex;
+  flex-direction: column;
+  width: min(400px, calc(100vw - 24px));
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  background: var(--surface);
+  color: var(--text);
+  box-shadow: var(--shadow);
+  animation: onboarding-in 0.25s ease-out;
+}
+
+@keyframes onboarding-in {
+  from {
+    opacity: 0;
+    transform: translateY(var(--onboarding-from, -6px));
+  }
+}
+
+.onboarding__body {
+  min-height: 0;
+  padding: 16px 18px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+.onboarding--above {
+  --onboarding-from: 6px;
+}
+
+/* The arrow, pointing at the search. */
+.onboarding::before {
+  content: '';
+  position: absolute;
+  left: calc(var(--arrow, 50%) - 7px);
+  width: 14px;
+  height: 14px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  transform: rotate(45deg);
+}
+
+.onboarding--below::before {
+  top: -8px;
+  border-right: 0;
+  border-bottom: 0;
+}
+
+.onboarding--above::before {
+  bottom: -8px;
+  border-left: 0;
+  border-top: 0;
+}
+
+.onboarding__close {
+  position: absolute;
+  z-index: 1;
+  top: 10px;
+  inset-inline-end: 10px;
+  display: grid;
+  place-items: center;
+}
+
+.onboarding h2 {
+  margin: 0;
+  padding-inline-end: 36px;
+  font-size: 17px;
+  letter-spacing: -0.01em;
+}
+
+.onboarding__lead {
+  margin: 4px 0 12px;
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+.onboarding__steps {
+  display: grid;
+  gap: 10px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.onboarding__steps li {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.onboarding__text {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  min-width: 0;
+  color: var(--muted);
+  font-size: 12.5px;
+  line-height: 1.4;
+}
+
+.onboarding__text strong {
+  color: var(--text);
+  font-size: 13.5px;
+}
+
+.onboarding__icon {
+  position: relative;
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+
+.onboarding__number {
+  position: absolute;
+  top: -5px;
+  inset-inline-end: -5px;
+  display: grid;
+  place-items: center;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: var(--accent);
+  color: var(--accent-text);
+  font-size: 10px;
+  font-weight: 800;
+}
+
+.onboarding__note {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  margin: 12px 0 0;
+  padding-top: 10px;
+  border-top: 1px solid var(--border);
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+.onboarding__note .icon {
+  flex: none;
+  margin-top: 1px;
+  color: var(--accent);
+}
+
+.onboarding__actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-top: 12px;
+}
+
+.onboarding__actions button {
+  white-space: nowrap;
+}
+
+/* On a phone, the steps' titles say enough. */
+@media (max-width: 720px) {
+  .onboarding__lead {
+    margin-bottom: 10px;
+  }
+
+  .onboarding__steps {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+  }
+
+  .onboarding__steps li {
+    align-items: center;
+    gap: 10px;
+  }
+
+  .onboarding__text > span {
+    display: none;
+  }
+
+  .onboarding__text strong {
+    font-size: 13px;
+    line-height: 1.25;
+  }
 }
 
 /* Dialogs */

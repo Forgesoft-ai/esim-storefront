@@ -8,6 +8,7 @@ import { CheckoutDialog } from './components/CheckoutDialog';
 import { returningOrder } from './returningOrder';
 import { SimIcon } from './components/icons';
 import { MyEsims } from './components/MyEsims';
+import { Onboarding } from './components/Onboarding';
 import { CurrencyPicker } from './components/CurrencyPicker';
 import { EnvironmentSwitch } from './components/EnvironmentSwitch';
 import { LanguagePicker } from './components/LanguagePicker';
@@ -27,6 +28,7 @@ import { PlanPanel } from './components/PlanPanel';
 import { Popular } from './components/Popular';
 import { SandboxTag } from './components/SandboxTag';
 import { SearchBox } from './components/SearchBox';
+import { shouldOnboard } from './onboarding';
 import { ThemeToggle } from './components/ThemeToggle';
 import { countryName } from './map/geography';
 import { heatScale, lowestPrices } from './map/heat';
@@ -160,6 +162,7 @@ export default function App() {
   });
   const [hasDevice, setHasDevice] = useState(() => !!storedDevice());
   const [showEsims, setShowEsims] = useState(takeEsimsOpen);
+  const [onboarding, setOnboarding] = useState(shouldOnboard);
 
   // A secret link (#device=…) brings a device's eSIMs to this browser: on
   // arrival, or pasted into the address bar of an open store, which only
@@ -442,6 +445,10 @@ export default function App() {
             onClose={() => setCheckout(null)}
             onPurchased={markPurchased}
           />
+        ) : null}
+
+        {onboarding && catalogue && !destination && !checkout && !showEsims ? (
+          <Onboarding onClose={() => setOnboarding(false)} />
         ) : null}
 
         {showEsims ? <MyEsims catalogue={catalogue} locale={locale} onClose={() => setShowEsims(false)} /> : null}

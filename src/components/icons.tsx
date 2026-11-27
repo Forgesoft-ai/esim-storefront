@@ -153,9 +153,10 @@ export const GlobeIcon = (p: P) => (
 /** A small grid of shaded squares: the price heatmap. */
 export const HeatIcon = (p: P) => (
   <Icon {...p}>
-    <rect x="3" y="3" width="7" height="7" rx="1.5" />
-    <rect x="14" y="3" width="7" height="7" rx="1.5" fill="currentColor" fillOpacity="0.35" />
-    <rect x="3" y="14" width="7" height="7" rx="1.5" fill="currentColor" fillOpacity="0.65" />
-    <rect x="14" y="14" width="7" height="7" rx="1.5" fill="currentColor" />
+    {/* A thermometer with soft heat waves rising beside it. */}
+    <path d="M11 13.6V5.5a2.5 2.5 0 0 1 5 0v8.1a4.5 4.5 0 1 1-5 0Z" />
+    <path d="M13.5 17.2V9.5" strokeWidth="2.2" />
+    <circle cx="13.5" cy="17.2" r="1.6" fill="currentColor" stroke="none" />
+    <path d="M5.5 4.5c-1.2 1.3 1.2 2.7 0 4s1.2 2.7 0 4" strokeWidth="1.6" />
   </Icon>
 );
