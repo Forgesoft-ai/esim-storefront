@@ -1,4 +1,4 @@
-import { ENV, type EnvironmentName, isEnvironmentName } from '../config';
+import { apiUrl, ENV, type EnvironmentName, isEnvironmentName } from '../config';
 import { AtliError } from './atli';
 
 /**
@@ -83,7 +83,7 @@ async function call<T>(method: string, path: string, body?: unknown, auth = true
   if (auth) headers.Authorization = `Bearer ${await accessToken()}`;
   let response: Response;
   try {
-    response = await fetch(new URL(`${ENV.apiPath}${path}`, window.location.origin), {
+    response = await fetch(apiUrl(path), {
       method,
       headers,
       body: body === undefined ? undefined : JSON.stringify(body),

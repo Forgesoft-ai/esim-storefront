@@ -1,4 +1,4 @@
-import { ENV } from '../config';
+import { apiUrl } from '../config';
 
 /**
  * A tiny client for the parts of Atli's eSIM API this storefront uses.
@@ -11,8 +11,8 @@ import { ENV } from '../config';
  * OpenAPI file:  https://api-staging.heyatli.com/openapi.yaml
  */
 
-// The store's own /api/…, forwarded to Atli's API (see src/config.ts).
-const api = (path: string) => new URL(`${ENV.apiPath}${path}`, window.location.origin);
+// The store's own /api/…, forwarded to Atli's API, or the API itself (see src/config.ts).
+const api = (path: string) => apiUrl(path);
 
 /** One package: an amount of data for a number of days, at a price. */
 export interface Package {

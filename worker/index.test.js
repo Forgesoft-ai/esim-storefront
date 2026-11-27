@@ -1,7 +1,8 @@
 import { describe, expect, it, vi } from 'vitest';
 
 import worker, { isAllowed, proxy } from './index.js';
-import { upstreamFor } from './upstream.js';
+import { ENVIRONMENTS } from '../src/config';
+import { UPSTREAMS, upstreamFor } from './upstream.js';
 
 /** A stand-in for Atli's API: records what it was sent, and answers `answer`. */
 function api(answer = Response.json({ ok: true })) {
@@ -125,5 +126,12 @@ describe('upstreamFor', () => {
     expect(upstreamFor('sandbox')).toBe('https://api-staging.heyatli.com');
     expect(upstreamFor('production')).toBe('https://api.heyatli.com');
     expect(upstreamFor('production', { ATLI_SANDBOX_API: 'http://x' })).toBe('https://api.heyatli.com');
+  });
+});
+
+describe('the store and the proxy', () => {
+  it('agree on where each environment lives', () => {
+    expect(ENVIRONMENTS.sandbox.apiUrl).toBe(UPSTREAMS.sandbox);
+    expect(ENVIRONMENTS.production.apiUrl).toBe(UPSTREAMS.production);
   });
 });

@@ -4,7 +4,7 @@ An open-source example of a travel eSIM store built on [Atli's eSIM API](https:/
 Pick a destination on a world map, choose a plan, pay, and install your eSIM. It's front-end only, with no sign-in: a
 guest account lives in your browser, and a private link brings it to any other.
 
-**Try it:** [map.examples.heyatli.com](https://map.examples.heyatli.com)
+**Try it:** [map.heyatli.com](https://map.heyatli.com)
 
 ![The store on a desktop: a dark world map zoomed to Japan, with the plan panel open on its unlimited packages](docs/screenshots/desktop-dark.png)
 
@@ -82,6 +82,7 @@ one (it makes a partner account), and use a Sandbox account for the Sandbox code
 | Variable                                  | Read by                     | What it sets                                   |
 | ----------------------------------------- | --------------------------- | ---------------------------------------------- |
 | `VITE_ATLI_ENV`                           | the build                   | `production` to start there instead of Sandbox |
+| `VITE_ATLI_API`                           | the build                   | `direct` to call Atli's API without the proxy  |
 | `ATLI_SANDBOX_API`, `ATLI_PRODUCTION_API` | the proxy and `npm run dev` | Another address for either API                 |
 
 ### How the store reaches the API
@@ -98,8 +99,25 @@ the same, and serves the built store from `dist/` for everything else.
 
 To run your own copy: `npm run build`, then serve `dist/` through the proxy.
 
+A store on an address Atli's API already accepts browser calls from, such as map.heyatli.com, can skip the proxy:
+build it with `VITE_ATLI_API=direct`, and the browser calls the API itself.
+
 Pull requests and pushes run [`.github/workflows/ci.yml`](.github/workflows/ci.yml): formatting, lint, types, tests
 and a build.
+
+### Building a real integration
+
+This store is a showcase: it makes each visitor a guest from a device id kept in the browser, so it needs no sign-up
+and no server. A real integration should call Atli's API with credentials of its own instead:
+
+- **[API keys](https://partners.heyatli.com/dev/api/keys)**, for your server to call the API as your account.
+- **[OAuth](https://partners.heyatli.com/dev/oauth)**, to let people sign in with their own Atli account, through a
+  dedicated application that the Atli team creates for you. Write to
+  [partners@heyatli.com](mailto:partners@heyatli.com).
+
+The [API guide](https://partners.heyatli.com/dev/api), its [reference](https://partners.heyatli.com/dev/api/reference-api-heyatli-com)
+and [How to integrate the Atli eSIM API](https://heyatli.com/blog/esim-api-integration/) cover both, and
+[Forgesoft-ai/esim-api](https://github.com/Forgesoft-ai/esim-api) walks through building a business on them.
 
 ## How it's built
 
