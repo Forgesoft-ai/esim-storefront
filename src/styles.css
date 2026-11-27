@@ -13,6 +13,14 @@
   --land-own: #5e8ff2;
   --land-hover: #2f6fed;
   --land-highlight: #f59e0b;
+  /* The price heatmap, cheapest to dearest: soft, so it doesn't shout on a light page. */
+  --heat-0: #7fc09a;
+  --heat-1: #a3cf9b;
+  --heat-2: #c8dc9f;
+  --heat-3: #e8dfa0;
+  --heat-4: #ecc59a;
+  --heat-5: #e4a690;
+  --heat-6: #d68a87;
   --danger: #b91c1c;
   --success: #15803d;
   --production: #c4320a;
@@ -54,6 +62,14 @@
   --on-production: #690005;
   --shadow: 0 10px 34px rgb(0 0 0 / 0.55);
   color-scheme: dark;
+  /* The heatmap, muted toward the slate, so it doesn't glow on a dark page. */
+  --heat-0: #3f7a5c;
+  --heat-1: #5a8758;
+  --heat-2: #7a9258;
+  --heat-3: #9a9459;
+  --heat-4: #a0805a;
+  --heat-5: #9c6a5b;
+  --heat-6: #935a5c;
 }
 
 * {
@@ -588,6 +604,80 @@ input {
   background: var(--surface);
   cursor: pointer;
   font-size: 18px;
+}
+
+.map__controls .map__heat-toggle {
+  display: grid;
+  place-items: center;
+}
+
+.map__heat-toggle[aria-pressed='true'] {
+  background: var(--accent);
+  color: var(--accent-text);
+}
+
+.map__heat-toggle[aria-pressed='true']:hover {
+  background: var(--accent);
+}
+
+/* While the heatmap is on, a selection shows as an outline, so it doesn't read as a price. */
+.map.has-heat .country.is-highlighted,
+.map.has-heat .country.is-focused {
+  stroke: var(--text);
+  stroke-width: 1.4;
+}
+
+.map.has-heat .country.is-focused {
+  stroke-width: 2.4;
+}
+
+.map.has-heat .country--own:hover,
+.map.has-heat .country--covered:hover {
+  filter: brightness(1.12);
+}
+
+.map__heat-legend {
+  position: absolute;
+  inset-inline-start: 64px;
+  bottom: 16px;
+}
+
+.heat-legend {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin: 0;
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--surface);
+  box-shadow: var(--shadow);
+  font-size: 12px;
+}
+
+.heat-legend figcaption {
+  color: var(--muted);
+  font-weight: 600;
+}
+
+.heat-legend__bar {
+  display: flex;
+  width: 168px;
+  height: 8px;
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+.heat-legend__bar span {
+  flex: 1;
+}
+
+.heat-legend__ends {
+  display: flex;
+  justify-content: space-between;
+  color: var(--text);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
 }
 
 .map__controls button + button {
@@ -1181,9 +1271,23 @@ input {
     border-radius: 16px 16px 0 0;
   }
 
-  /* Pinch and drag do this on a phone. */
-  .map__controls {
+  /* Pinch and drag zoom on a phone; the heatmap toggle stays. */
+  .map__controls button:not(.map__heat-toggle) {
     display: none;
+  }
+
+  .map__controls {
+    bottom: 12px;
+    inset-inline-start: 12px;
+  }
+
+  .map__heat-legend {
+    bottom: 12px;
+    inset-inline-start: 60px;
+  }
+
+  .heat-legend__bar {
+    width: 120px;
   }
 
   /* The world is wide and a phone is tall: the map gets the top, quick picks the rest. */

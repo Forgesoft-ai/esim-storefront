@@ -2,13 +2,17 @@ import { geoNaturalEarth1, geoPath } from 'd3-geo';
 import { select } from 'd3-selection';
 import 'd3-transition';
 import { zoom, zoomIdentity, type D3ZoomEvent, type ZoomBehavior } from 'd3-zoom';
-import { memo, useEffect, useMemo, useRef, useState } from 'react';
+import { memo, type ReactNode, useEffect, useMemo, useRef, useState } from 'react';
 
+import { HeatIcon } from '../components/icons';
 import { useI18n } from '../i18n/context';
 import { COUNTRY_FEATURES, DOT_COUNTRIES } from './geography';
 
 /** No animation for anyone who asks for reduced motion. */
 const motion = (ms: number) => (window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 0 : ms);
+
+/** A country's heatmap colour, over its usual fill; nothing sold keeps the usual grey. */
+const heatFill = (color: string | undefined) => (color ? { fill: color } : undefined);
 
 const WIDTH = 960;
 const HEIGHT = 500;
@@ -60,6 +64,12 @@ interface Props {
   insetEnd?: number;
   label: (code: string) => string;
   onSelect: (code: string) => void;
+  /** Each country's colour while the price heatmap is on; left out, it's off. */
+  heat?: (code: string) => string | undefined;
+  /** Turns the price heatmap on or off. */
+  onToggleHeat?: () => void;
+  /** The heatmap's key, shown beside the controls while it's on. */
+  heatLegend?: ReactNode;
 }
 
 /**
@@ -74,6 +84,9 @@ export const WorldMap = memo(function WorldMap({
   insetEnd = 0,
   label,
   onSelect,
+  heat,
+  onToggleHeat,
+  heatLegend,
 }: Props) {
   const svgRef = useRef<SVGSVGElement>(null);
   const layerRef = useRef<SVGGElement>(null);
@@ -157,17 +170,18 @@ export const WorldMap = memo(function WorldMap({
             key={`${code || name}-${i}`}
             d={d}
             className={`country country--${level}${highlighted.has(code) ? ' is-highlighted' : ''}${code && code === focused ? ' is-focused' : ''}`}
+            style={heat && code ? heatFill(heat(code)) : undefined}
             onClick={selectable ? () => onSelect(code) : undefined}
             onPointerMove={(e) => setHover({ code: code || name, x: e.clientX, y: e.clientY })}
             onPointerLeave={() => setHover(null)}
           />
         );
       }),
-    [coverage, highlighted, focused, onSelect],
+    [coverage, highlighted, focused, onSelect, heat],
   );
 
   return (
-    <div className={`map${focused ? ' has-focus' : ''}`}>
+    <div className={`map${focused ? ' has-focus' : ''}${heat ? ' has-heat' : ''}`}>
       <svg
         ref={svgRef}
         viewBox={`0 0 ${WIDTH} ${HEIGHT}`}
@@ -186,6 +200,7 @@ export const WorldMap = memo(function WorldMap({
                 cy={y}
                 r={4 / Math.sqrt(scale)}
                 className={`country country--${level} country--dot${highlighted.has(code) ? ' is-highlighted' : ''}${code === focused ? ' is-focused' : ''}`}
+                style={heat ? heatFill(heat(code)) : undefined}
                 onClick={level !== 'none' ? () => onSelect(code) : undefined}
                 onPointerMove={(e) => setHover({ code, x: e.clientX, y: e.clientY })}
                 onPointerLeave={() => setHover(null)}
@@ -205,7 +220,20 @@ export const WorldMap = memo(function WorldMap({
         <button type="button" onClick={reset} aria-label={t('map.reset')}>
           ⟲
         </button>
+        {onToggleHeat ? (
+          <button
+            type="button"
+            className="map__heat-toggle"
+            onClick={onToggleHeat}
+            aria-pressed={Boolean(heat)}
+            aria-label={t('map.heatmap')}
+            title={t('map.heatmap')}
+          >
+            <HeatIcon width={18} height={18} />
+          </button>
+        ) : null}
       </div>
+      {heat && heatLegend ? <div className="map__heat-legend">{heatLegend}</div> : null}
 
       {hover ? (
         <div className="map__tooltip" style={{ left: hover.x, top: hover.y }} aria-hidden>

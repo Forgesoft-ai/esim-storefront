@@ -149,3 +149,13 @@ export const GlobeIcon = (p: P) => (
     <path d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z" />
   </Icon>
 );
+
+/** A small grid of shaded squares: the price heatmap. */
+export const HeatIcon = (p: P) => (
+  <Icon {...p}>
+    <rect x="3" y="3" width="7" height="7" rx="1.5" />
+    <rect x="14" y="3" width="7" height="7" rx="1.5" fill="currentColor" fillOpacity="0.35" />
+    <rect x="3" y="14" width="7" height="7" rx="1.5" fill="currentColor" fillOpacity="0.65" />
+    <rect x="14" y="14" width="7" height="7" rx="1.5" fill="currentColor" />
+  </Icon>
+);

@@ -29,10 +29,29 @@ import { SandboxTag } from './components/SandboxTag';
 import { SearchBox } from './components/SearchBox';
 import { ThemeToggle } from './components/ThemeToggle';
 import { countryName } from './map/geography';
+import { heatScale, lowestPrices } from './map/heat';
+import { HeatLegend } from './map/HeatLegend';
 import { type Coverage, WorldMap } from './map/WorldMap';
 
 const CURRENCY_KEY = 'esim-storefront:currency';
 const OPEN_ESIMS_KEY = 'esim-storefront:open-esims';
+const HEAT_KEY = 'esim-storefront:heatmap';
+
+function readHeat(): boolean {
+  try {
+    return localStorage.getItem(HEAT_KEY) === 'on';
+  } catch {
+    return false;
+  }
+}
+
+function rememberHeat(on: boolean) {
+  try {
+    localStorage.setItem(HEAT_KEY, on ? 'on' : 'off');
+  } catch {
+    // The heatmap holds for this visit.
+  }
+}
 
 /** Carry "open My eSIMs" across the reload a secret link from the other environment causes. */
 function rememberEsimsOpen() {
@@ -263,6 +282,16 @@ export default function App() {
     [catalogue],
   );
 
+  // The price heatmap: each country by the lowest price covering it, on or off by the visitor's choice.
+  const [heatOn, setHeatOn] = useState(readHeat);
+  const heat = useMemo(() => (catalogue ? heatScale(lowestPrices(catalogue)) : null), [catalogue]);
+  const toggleHeat = useCallback(() => {
+    setHeatOn((on) => {
+      rememberHeat(!on);
+      return !on;
+    });
+  }, []);
+
   const coverage = useCallback(
     (code: string): Coverage => {
       if (!catalogue) return 'none';
@@ -362,6 +391,19 @@ export default function App() {
             insetEnd={destination && wide ? PANEL_INSET : 0}
             label={label}
             onSelect={selectCountry}
+            heat={heatOn ? heat?.color : undefined}
+            onToggleHeat={heat ? toggleHeat : undefined}
+            heatLegend={
+              heat ? (
+                <HeatLegend
+                  title={t('map.lowestPrice')}
+                  min={formatPrice(heat.min, currency)}
+                  max={formatPrice(heat.max, currency)}
+                  cheaper={t('map.cheaper')}
+                  dearer={t('map.dearer')}
+                />
+              ) : null
+            }
           />
 
           {catalogue && destination ? (

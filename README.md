@@ -17,6 +17,8 @@ guest account lives in your browser, and a private link brings it to any other.
 
 - **A world map** coloured by where Atli sells plans. Drag, zoom and click a country, or use the quick picks on a
   phone.
+- **A price heatmap**, one button away on the map: every country coloured by the lowest price that covers it, green
+  to red, with a key.
 - **Search** for a country, region, state or city. Destinations come from heyatli.com's own list, so "Tokyo" or
   "California" finds the plans of the country they're in.
 - **Plans and packages.** Every plan that covers a destination, its own first, under Atli's art and flag. A dropdown
