@@ -269,7 +269,7 @@ export function startFlights(layer: SVGGElement, options: FlightOptions): () => 
     dot.style.opacity = String(age < 0 ? 0 : alpha * smooth(clamp01(age / 250)));
   }
 
-  function draw(flight: Flight, now: number, k: number) {
+  function draw(flight: Flight, now: number, k: number, px: number) {
     const { trail, plane } = flight.nodes;
     const age = now - flight.start;
     const lands = BOARDING + flight.duration;
@@ -296,7 +296,7 @@ export function startFlights(layer: SVGGElement, options: FlightOptions): () => 
     const labelled = shown > 0;
     label.style.opacity = String(labelled ? fade * smooth(clamp01(shown / 250)) : 0);
     if (labelled)
-      label.setAttribute('transform', `translate(${flight.to.x} ${flight.to.y}) scale(${1 / k}) translate(0 -20)`);
+      label.setAttribute('transform', `translate(${flight.to.x} ${flight.to.y}) scale(${1 / px}) translate(0 -18)`);
 
     const flying = age >= BOARDING && age < lands + 250;
     plane.style.display = flying ? '' : 'none';
@@ -316,6 +316,9 @@ export function startFlights(layer: SVGGElement, options: FlightOptions): () => 
     const elapsed = Math.min(now - last, 100);
     last = now;
     const k = scale();
+    // Screen pixels per map unit, zoom included: the map shrinks to a phone's
+    // width, but the label should read at the same size everywhere.
+    const px = root.getScreenCTM()?.a || k;
     flights = flights.filter((flight) => {
       if (flight.held) flight.start += elapsed;
       const done = now - flight.start > BOARDING + flight.duration + ARRIVED + FADE_OUT;
@@ -326,7 +329,7 @@ export function startFlights(layer: SVGGElement, options: FlightOptions): () => 
       spawn(now);
       nextSpawn = now + random(SPAWN_MIN, SPAWN_MAX);
     }
-    for (const flight of flights) draw(flight, now, k);
+    for (const flight of flights) draw(flight, now, k, px);
     frame = requestAnimationFrame(tick);
   }
 
