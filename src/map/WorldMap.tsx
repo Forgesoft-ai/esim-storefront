@@ -97,8 +97,8 @@ export const WorldMap = memo(function WorldMap({
   const [hover, setHover] = useState<{ code: string; x: number; y: number; plane?: boolean } | null>(null);
 
   // What the flights read on every frame, without restarting them.
-  const live = useRef({ scale, coverage, onSelect, busy: highlighted.size > 0 });
-  live.current = { scale, coverage, onSelect, busy: highlighted.size > 0 };
+  const live = useRef({ scale, coverage, onSelect, label, busy: highlighted.size > 0 });
+  live.current = { scale, coverage, onSelect, label, busy: highlighted.size > 0 };
 
   useEffect(() => {
     if (!layerRef.current || motion(1) === 0) return;
@@ -109,6 +109,7 @@ export const WorldMap = memo(function WorldMap({
       sold: (code) => live.current.coverage(code) !== 'none',
       onHover: (at) => setHover(at ? { ...at, plane: true } : null),
       onPick: (code) => live.current.onSelect(code),
+      describe: (code) => live.current.label(code),
     });
   }, []);
 

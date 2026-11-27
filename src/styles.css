@@ -635,6 +635,23 @@ input {
   fill-opacity: 1;
 }
 
+.flight__label {
+  pointer-events: none;
+}
+
+.flight__card {
+  fill: var(--surface);
+  stroke: var(--border);
+  stroke-width: 1;
+  vector-effect: non-scaling-stroke;
+}
+
+.flight__text {
+  fill: var(--text);
+  font-size: 11px;
+  font-weight: 600;
+}
+
 .flight__hit {
   fill: transparent;
 }

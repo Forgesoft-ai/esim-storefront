@@ -60,8 +60,8 @@ const BOARDING = 700;
 /** Time in the air, scaled by distance between these. */
 const FLIGHT_MIN = 3200;
 const FLIGHT_MAX = 5600;
-/** The destination stays lit this long after landing, then it all fades. */
-const ARRIVED = 1400;
+/** The destination stays lit, and named, this long after landing; then it all fades. */
+const ARRIVED = 2000;
 const FADE_OUT = 700;
 /** A new flight is considered this often, while there is room for one. */
 const SPAWN_MIN = 1200;
@@ -99,6 +99,7 @@ interface Flight {
     from: Ping;
     to: Ping;
     plane: SVGGElement;
+    label: SVGGElement;
   };
 }
 
@@ -150,11 +151,13 @@ export interface FlightOptions {
   onHover: (hover: { code: string; x: number; y: number } | null) => void;
   /** A click on a plane. */
   onPick: (code: string) => void;
+  /** What a destination is called on its label once a plane lands there: its name and price. */
+  describe: (code: string) => string;
 }
 
 /** Starts the flights in `layer`; the returned function stops them and clears up. */
 export function startFlights(layer: SVGGElement, options: FlightOptions): () => void {
-  const { project, scale, enabled, sold, onHover, onPick } = options;
+  const { project, scale, enabled, sold, onHover, onPick, describe } = options;
   const root = element('g', { class: 'flights' });
   layer.append(root);
 
@@ -190,7 +193,20 @@ export function startFlights(layer: SVGGElement, options: FlightOptions): () => 
       element('path', { d: PLANE, transform: 'translate(-12 -12)' }),
     );
     group.append(trail, pings.from.ring, pings.from.dot, pings.to.ring, pings.to.dot, plane);
+    // Where it landed, named for a moment.
+    const label = element('g', { class: 'flight__label' });
+    const card = element('rect', { class: 'flight__card', rx: 8 });
+    const text = element('text', { class: 'flight__text', 'text-anchor': 'middle', 'dominant-baseline': 'central' });
+    text.textContent = describe(to.code);
+    label.append(card, text);
+    group.append(label);
     root.append(group);
+    const box = text.getBBox();
+    card.setAttribute('x', String(box.x - 8));
+    card.setAttribute('y', String(box.y - 4));
+    card.setAttribute('width', String(box.width + 16));
+    card.setAttribute('height', String(box.height + 8));
+    label.style.opacity = '0';
 
     const flight: Flight = {
       from,
@@ -199,7 +215,7 @@ export function startFlights(layer: SVGGElement, options: FlightOptions): () => 
       start: now,
       duration: FLIGHT_MIN + (FLIGHT_MAX - FLIGHT_MIN) * clamp01(distance / MAX_HOP),
       held: false,
-      nodes: { group, trail, plane, ...pings },
+      nodes: { group, trail, plane, label, ...pings },
     };
     plane.addEventListener('pointerenter', (e) => {
       flight.held = true;
@@ -273,6 +289,14 @@ export function startFlights(layer: SVGGElement, options: FlightOptions): () => 
 
     drawPing(flight.nodes.from, flight.from, age, fade, k);
     drawPing(flight.nodes.to, flight.to, age - lands, fade, k);
+
+    // The label shows from touch-down, above the destination, and fades with the flight.
+    const { label } = flight.nodes;
+    const shown = age - lands;
+    const labelled = shown > 0;
+    label.style.opacity = String(labelled ? fade * smooth(clamp01(shown / 250)) : 0);
+    if (labelled)
+      label.setAttribute('transform', `translate(${flight.to.x} ${flight.to.y}) scale(${1 / k}) translate(0 -20)`);
 
     const flying = age >= BOARDING && age < lands + 250;
     plane.style.display = flying ? '' : 'none';
