@@ -1,5 +1,7 @@
 :root {
   --bg: #f4f6fa;
+  /* The sea: a touch bluer than the page. */
+  --ocean: #e6eef8;
   --surface: #ffffff;
   --surface-2: #eef2f8;
   --border: #dde3ec;
@@ -42,6 +44,7 @@
 
 :root[data-theme='dark'] {
   --bg: #0f141b;
+  --ocean: #101b29;
   --surface: #161d27;
   --surface-2: #1e2733;
   --border: #2b3544;
@@ -530,7 +533,7 @@ input {
 .map {
   position: absolute;
   inset: 0;
-  background: var(--bg);
+  background: var(--ocean);
 }
 
 .map svg {
@@ -546,7 +549,7 @@ input {
 }
 
 .country {
-  stroke: var(--bg);
+  stroke: var(--ocean);
   stroke-width: 0.6;
   vector-effect: non-scaling-stroke;
   transition: fill 120ms;
